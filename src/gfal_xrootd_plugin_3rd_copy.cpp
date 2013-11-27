@@ -117,6 +117,17 @@ int gfal_xrootd_3rdcopy_check(plugin_handle plugin_data,
 
 
 
+void gfal_xrootd_3rd_init_url(XrdCl::URL& xurl, const char* url, const char* token)
+{
+  xurl.FromString(sanitize_url(url));
+  if (token) {
+    XrdCl::URL::ParamsMap params;
+    params.insert(std::make_pair("svcClass", token));
+    xurl.SetParams(params);
+  }
+}
+
+
 int gfal_xrootd_3rd_copy(plugin_handle plugin_data, gfal2_context_t context,
                          gfalt_params_t params,
                          const char* src, const char* dst,
@@ -126,8 +137,9 @@ int gfal_xrootd_3rd_copy(plugin_handle plugin_data, gfal2_context_t context,
 
   XrdCl::JobDescriptor job;
 
-  job.source.FromString(sanitize_url(src));
-  job.target.FromString(sanitize_url(dst));
+  gfal_xrootd_3rd_init_url(job.source, src, gfalt_get_src_spacetoken(params, NULL));
+  gfal_xrootd_3rd_init_url(job.target, dst, gfalt_get_dst_spacetoken(params, NULL));
+
   job.force              = gfalt_get_replace_existing_file(params, NULL);;
   job.posc               = true;
   job.thirdParty         = true;
