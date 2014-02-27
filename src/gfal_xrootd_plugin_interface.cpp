@@ -229,7 +229,7 @@ gfal_file_handle gfal_xrootd_opendirG(plugin_handle plugin_data, const char* url
     g_set_error(err, xrootd_domain, errno, "[%s] Failed to open dir", __func__);
     return NULL;
   }
-  return gfal_file_handle_new(gfal_xrootd_getName(), (gpointer) dirp);
+  return gfal_file_handle_new2(gfal_xrootd_getName(), (gpointer) dirp, NULL, url); 
 }
 
 struct dirent* gfal_xrootd_readdirG(plugin_handle plugin_data, gfal_file_handle dir_desc, GError** err) {
