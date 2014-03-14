@@ -106,6 +106,7 @@ private:
 
 
 int gfal_xrootd_3rdcopy_check(plugin_handle plugin_data,
+                              gfal_context_t context,
                               const char* src, const char* dst,
                               gfal_url2_check check)
 {

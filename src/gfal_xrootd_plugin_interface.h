@@ -67,6 +67,7 @@ int gfal_xrootd_checksumG(plugin_handle data, const char* url, const char* check
                           GError ** err);
 
 int gfal_xrootd_3rdcopy_check(plugin_handle plugin_data,
+                              gfal_context_t context,
                               const char* src, const char* dst,
                               gfal_url2_check check);
 
