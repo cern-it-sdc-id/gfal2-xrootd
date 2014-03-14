@@ -12,6 +12,7 @@ URL:            https://svnweb.cern.ch/trac/lcgutil/wiki/gfal2
 Source0:        http://grid-deployment.web.cern.ch/grid-deployment/dms/lcgutil/tar/%{name}/%{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
+BuildRequires:  boost-devel
 BuildRequires:  cmake
 BuildRequires:  gfal2-devel
 BuildRequires:  xrootd-client-devel

@@ -18,7 +18,7 @@
  *
  */
 
-#include <condition_variable>
+#include <boost/thread.hpp>
 #include <iostream>
 #include <sys/stat.h>
 
@@ -286,8 +286,8 @@ private:
 
     struct dirent dbuffer;
 
-    std::mutex mutex;
-    std::condition_variable cv;
+    boost::mutex mutex;
+    boost::condition_variable cv;
     bool done;
 
 public:
@@ -313,7 +313,7 @@ public:
     // AFAIK, this is called only once
     void HandleResponse(XrdCl::XRootDStatus* status, XrdCl::AnyObject* response)
     {
-        std::lock_guard<std::mutex> lock(mutex);
+        boost::mutex::scoped_lock lock(mutex);
         if (status->IsOK()) {
             XrdCl::DirectoryList* list;
             response->Get<XrdCl::DirectoryList*>(list);
@@ -335,8 +335,8 @@ public:
     struct dirent* Get(struct stat* st = NULL)
     {
         if (!done) {
-            std::unique_lock<std::mutex> lock(mutex);
-            cv.wait_for(lock, std::chrono::seconds(60));
+            boost::unique_lock<boost::mutex> lock(mutex);
+            cv.timed_wait(lock, boost::get_system_time()+ boost::posix_time::seconds(60));
             if (!done) {
                 return NULL;
             }
