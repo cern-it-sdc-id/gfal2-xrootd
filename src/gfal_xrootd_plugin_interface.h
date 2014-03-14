@@ -59,6 +59,8 @@ gfal_file_handle gfal_xrootd_opendirG(plugin_handle plugin_data, const char* url
 
 struct dirent* gfal_xrootd_readdirG(plugin_handle plugin_data, gfal_file_handle dir_desc, GError** err);
 
+struct dirent* gfal_xrootd_readdirppG(plugin_handle plugin_data, gfal_file_handle dir_desc, struct stat* st, GError** err);
+
 int gfal_xrootd_closedirG(plugin_handle plugin_data, gfal_file_handle dir_desc, GError** err);
 
 int gfal_xrootd_checksumG(plugin_handle data, const char* url, const char* check_type,

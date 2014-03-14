@@ -18,7 +18,6 @@
 * 
 */
 
-
 #include <string.h>
 #include <sys/types.h>
 
@@ -64,6 +63,7 @@ gfal_plugin_interface gfal_plugin_init(gfal_handle handle, GError** err) {
 
   xrootd_plugin.opendirG = &gfal_xrootd_opendirG;
   xrootd_plugin.readdirG = &gfal_xrootd_readdirG;
+  xrootd_plugin.readdirppG = &gfal_xrootd_readdirppG;
   xrootd_plugin.closedirG = &gfal_xrootd_closedirG;
 
   xrootd_plugin.getxattrG = NULL; // &gfal_xrootd_getxattrG;
