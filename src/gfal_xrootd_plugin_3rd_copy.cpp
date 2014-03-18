@@ -38,7 +38,7 @@
 
 class CopyFeedback: public XrdCl::CopyProgressHandler {
 public:
-  CopyFeedback(gfalt_params_t p): params(p), startTime(0)
+  CopyFeedback(gfal2_context_t context, gfalt_params_t p): context(context), params(p), startTime(0)
   {
     this->monitorCallback = gfalt_get_monitor_callback(this->params, NULL);
     monitorCallbackData = gfalt_transfer_status_create(&this->status);
@@ -91,8 +91,13 @@ public:
     }
   }
 
+  bool ShouldCancel()
+  {
+    return gfal2_is_canceled(this->context);
+  }
 
 private:
+  gfal2_context_t    context;
   gfalt_params_t     params;
   gfalt_monitor_func monitorCallback;
 
@@ -147,6 +152,7 @@ int gfal_xrootd_3rd_copy(plugin_handle plugin_data, gfal2_context_t context,
   job.Set("force", gfalt_get_replace_existing_file(params, NULL));
   job.Set("posc", true);
   job.Set("thirdParty", "only");
+  job.Set("tpcTimeout", gfalt_get_timeout(params, NULL));
 
   char checksumType[64] = {0};
   char checksumValue[512] = {0};
@@ -193,7 +199,7 @@ int gfal_xrootd_3rd_copy(plugin_handle plugin_data, gfal2_context_t context,
   }
 
 
-  CopyFeedback feedback(params);
+  CopyFeedback feedback(context, params);
   status = process.Run(&feedback);
 
   if (!status.IsOK()) {
