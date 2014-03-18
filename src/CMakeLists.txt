@@ -4,7 +4,12 @@ pkg_check_modules(GFAL2_PKG         REQUIRED gfal2>=2.1.1)
 pkg_check_modules(GFAL_TRANSFER_PKG REQUIRED gfal_transfer>=2.1.1)
 pkg_check_modules(GLIB2_PKG         REQUIRED glib-2.0)
 
-find_package(Boost COMPONENTS thread REQUIRED)
+# Find Boost 1.41
+set (BOOST_INCLUDEDIR "/usr/include/boost141") # EPEL5
+set (BOOST_LIBRARYDIR "/usr/lib${LIB_SUFFIX}/boost141/") # EPEL5
+set (Boost_ADDITIONAL_VERSIONS "1.41" "1.41.0")
+
+find_package(Boost 1.41 COMPONENTS thread REQUIRED)
 find_package(XROOTD REQUIRED)
 
 include_directories(${Boost_INCLUDE_DIRS})
