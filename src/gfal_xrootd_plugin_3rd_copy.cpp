@@ -136,16 +136,17 @@ int gfal_xrootd_3rd_copy(plugin_handle plugin_data, gfal2_context_t context,
 {
   GError* internalError = NULL;
 
-  XrdCl::JobDescriptor job;
+  XrdCl::URL source_url, dest_url;
+  gfal_xrootd_3rd_init_url(source_url, src, gfalt_get_src_spacetoken(params, NULL));
+  gfal_xrootd_3rd_init_url(dest_url, dst, gfalt_get_dst_spacetoken(params, NULL));
 
-  gfal_xrootd_3rd_init_url(job.source, src, gfalt_get_src_spacetoken(params, NULL));
-  gfal_xrootd_3rd_init_url(job.target, dst, gfalt_get_dst_spacetoken(params, NULL));
+  XrdCl::PropertyList job;
 
-  job.force              = gfalt_get_replace_existing_file(params, NULL);;
-  job.posc               = true;
-  job.thirdParty         = true;
-  job.thirdPartyFallBack = false;
-  job.checkSumPrint      = false;
+  job.Set("source", source_url.GetURL());
+  job.Set("target", dest_url.GetURL());
+  job.Set("force", gfalt_get_replace_existing_file(params, NULL));
+  job.Set("posc", true);
+  job.Set("thirdParty", "only");
 
   char checksumType[64] = {0};
   char checksumValue[512] = {0};
@@ -173,12 +174,14 @@ int gfal_xrootd_3rd_copy(plugin_handle plugin_data, gfal2_context_t context,
       g_free(defaultChecksumType);
     }
 
-    job.checkSumType   = predefinedChecksumTypeToLower(checksumType);
-    job.checkSumPreset = checksumValue;
+    job.Set("checkSumMode", "end2end");
+    job.Set("checkSumType", predefinedChecksumTypeToLower(checksumType));
+    job.Set("checkSumPreset", checksumValue);
   }
 
+  XrdCl::PropertyList results;
   XrdCl::CopyProcess process;
-  process.AddJob(&job);
+  process.AddJob(job, &results);
 
 
   XrdCl::XRootDStatus status = process.Prepare();
