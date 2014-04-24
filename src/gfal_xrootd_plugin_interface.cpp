@@ -64,7 +64,6 @@ void set_xrootd_log_level()
 int gfal_xrootd_statG(plugin_handle handle, const char* path, struct stat* buff,
         GError ** err)
 {
-
     std::string sanitizedUrl = sanitize_url(path);
 
     // reset stat fields
@@ -176,10 +175,11 @@ int gfal_xrootd_closeG(plugin_handle handle, gfal_file_handle fd, GError ** err)
 int gfal_xrootd_mkdirpG(plugin_handle plugin_data, const char *url, mode_t mode,
         gboolean pflag, GError **err)
 {
-
     std::string sanitizedUrl = sanitize_url(url);
 
     if (XrdPosixXrootd::Mkdir(sanitizedUrl.c_str(), mode) != 0) {
+        if (errno == ECANCELED)
+            errno = EEXIST;
         g_set_error(err, xrootd_domain, errno,
                 "[%s] Failed to create directory", __func__);
         return -1;
@@ -191,7 +191,6 @@ int gfal_xrootd_mkdirpG(plugin_handle plugin_data, const char *url, mode_t mode,
 int gfal_xrootd_chmodG(plugin_handle plugin_data, const char *url, mode_t mode,
         GError **err)
 {
-
     std::string sanitizedUrl = sanitize_url(url);
 
     XrdClientAdmin client(sanitizedUrl.c_str());
@@ -238,6 +237,8 @@ int gfal_xrootd_rmdirG(plugin_handle plugin_data, const char *url, GError **err)
     std::string sanitizedUrl = sanitize_url(url);
 
     if (XrdPosixXrootd::Rmdir(sanitizedUrl.c_str()) != 0) {
+        if (errno == ECANCELED) errno =  ENOTEMPTY;
+        else if (errno == ENOSYS) errno = ENOTDIR;
         g_set_error(err, xrootd_domain, errno,
                 "[%s] Failed to delete directory", __func__);
         return -1;
@@ -333,6 +334,21 @@ public:
         cv.notify_all();
     }
 
+    void StatInfo2Stat(const XrdCl::StatInfo* stinfo, struct stat* st)
+    {
+        st->st_size = stinfo->GetSize();
+        st->st_mtime = stinfo->GetModTime();
+        st->st_mode = 0;
+        if (stinfo->TestFlags(XrdCl::StatInfo::IsDir))
+            st->st_mode |= S_IFDIR;
+        if (stinfo->TestFlags(XrdCl::StatInfo::IsReadable))
+            st->st_mode |= (S_IRUSR | S_IRGRP | S_IROTH);
+        if (stinfo->TestFlags(XrdCl::StatInfo::IsWritable))
+            st->st_mode |= (S_IWUSR | S_IWGRP | S_IWOTH);
+        if (stinfo->TestFlags(XrdCl::StatInfo::XBitSet))
+            st->st_mode |= (S_IXUSR | S_IXGRP | S_IXOTH);
+    }
+
     struct dirent* Get(struct stat* st = NULL)
     {
         if (!done) {
@@ -349,7 +365,7 @@ public:
         XrdCl::DirectoryList::ListEntry entry = entries.front();
         entries.pop_front();
 
-        const XrdCl::StatInfo* stinfo = entry.GetStatInfo();
+        XrdCl::StatInfo* stinfo = entry.GetStatInfo();
 
         strncpy(dbuffer.d_name, entry.GetName().c_str(), sizeof(dbuffer.d_name));
         dbuffer.d_reclen = entry.GetName().size();
@@ -361,11 +377,19 @@ public:
 
 
         if (st != NULL) {
-            memset(st, 0, sizeof(struct stat));
             if (stinfo != NULL) {
-                st->st_size = stinfo->GetSize();
-                st->st_mtime = stinfo->GetModTime();
-                st->st_mode = stinfo->GetFlags();
+                StatInfo2Stat(stinfo, st);
+            }
+            else {
+                std::string fullPath = url.GetPath() + "/" + dbuffer.d_name;
+                XrdCl::XRootDStatus status = this->fs.Stat(fullPath, stinfo);
+                if (!status.IsOK()) {
+                    errcode = status.code;
+                    errstr = status.ToString();
+                    return NULL;
+                }
+                StatInfo2Stat(stinfo, st);
+                delete stinfo;
             }
         }
 
@@ -377,9 +401,20 @@ public:
 gfal_file_handle gfal_xrootd_opendirG(plugin_handle plugin_data,
         const char* url, GError** err)
 {
-
     std::string sanitizedUrl = sanitize_url(url);
     XrdCl::URL parsed(sanitizedUrl);
+
+    // Need to do stat first so we can fail syncrhonously for some errors!
+    struct stat st;
+    if (XrdPosixXrootd::Stat(sanitizedUrl.c_str(), &st) != 0) {
+        g_set_error(err, xrootd_domain, errno, "[%s] Failed to stat file", __func__);
+        return NULL;
+    }
+
+    if (!S_ISDIR(st.st_mode)) {
+        g_set_error(err, xrootd_domain, ENOTDIR, "[%s] Not a directory", __func__);
+        return NULL;
+    }
 
     DirListHandler* handler = new DirListHandler(parsed);
 
