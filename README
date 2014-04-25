@@ -8,8 +8,9 @@ Build requirements:
  - gfal2-devel (available in EPEL-testing)
 
 To build and install:
- - ./autogen.sh
- - ./configure
+ - mkdir build
+ - cd build
+ - cmake ..
  - make
  - make install
  
