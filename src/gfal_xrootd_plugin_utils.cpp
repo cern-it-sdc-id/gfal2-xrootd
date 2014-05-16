@@ -17,12 +17,10 @@
 * Authors : David Cameron, Alejandro Alvarez Ayllon, Adrien Devresse
 * 
 */
-
-
-
 #include <algorithm>
-#include <string.h>
+#include <cstring>
 #include <fcntl.h>
+#include <sstream>
 
 #include "gfal_xrootd_plugin_utils.h"
 
@@ -63,7 +61,31 @@ void reset_stat(struct stat& st) {
   st.st_uid = 0;
 }
 
-std::string sanitize_url(const char* url) {
+static std::string credentials_query(gfal2_context_t context) {
+    gchar* ucert = gfal2_get_opt_string(context, "X509", "CERT", NULL);
+    gchar* ukey = gfal2_get_opt_string(context, "X509", "KEY", NULL);
+    if (!ucert)
+        return std::string();
+    if (!ukey)
+        ukey = ucert;
+
+    std::ostringstream args;
+
+    // Certificate == key, assume proxy
+    if (strcmp(ucert, ukey) == 0) {
+        args << "xrd.gsiusrpxy=" << ucert;
+    }
+    else {
+        args << "xrd.gsiusrcrt=" << ucert << '&' << "xrd.gsiusrkey=" << ukey;
+    }
+
+    g_free(ucert);
+    if (ucert != ukey) g_free(ukey);
+
+    return args.str();
+}
+
+std::string normalize_url(gfal2_context_t context, const char* url) {
   const char* p = url + 7; // Jump over root://
   p = strchr(p, '/');
 
@@ -79,6 +101,13 @@ std::string sanitize_url(const char* url) {
   }
   else {
     sanitized = std::string(url, p - url) + "//" + p;
+  }
+
+  std::string creds = credentials_query(context);
+  if (!creds.empty()) {
+      if (sanitized.find('?') == std::string::npos)
+          sanitized += "?";
+      sanitized += creds;
   }
 
   return sanitized;

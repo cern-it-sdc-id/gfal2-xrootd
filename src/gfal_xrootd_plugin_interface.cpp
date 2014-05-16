@@ -64,7 +64,7 @@ void set_xrootd_log_level()
 int gfal_xrootd_statG(plugin_handle handle, const char* path, struct stat* buff,
         GError ** err)
 {
-    std::string sanitizedUrl = sanitize_url(path);
+    std::string sanitizedUrl = normalize_url((gfal2_context_t)handle, path);
 
     // reset stat fields
     reset_stat(*buff);
@@ -82,7 +82,7 @@ gfal_file_handle gfal_xrootd_openG(plugin_handle handle, const char *path,
         int flag, mode_t mode, GError ** err)
 {
 
-    std::string sanitizedUrl = sanitize_url(path);
+    std::string sanitizedUrl = normalize_url((gfal2_context_t)handle, path);
 
     int* fd = new int(XrdPosixXrootd::Open(sanitizedUrl.c_str(), flag, mode));
     if (*fd == -1) {
@@ -172,10 +172,10 @@ int gfal_xrootd_closeG(plugin_handle handle, gfal_file_handle fd, GError ** err)
 }
 
 
-int gfal_xrootd_mkdirpG(plugin_handle plugin_data, const char *url, mode_t mode,
+int gfal_xrootd_mkdirpG(plugin_handle handle, const char *url, mode_t mode,
         gboolean pflag, GError **err)
 {
-    std::string sanitizedUrl = sanitize_url(url);
+    std::string sanitizedUrl = normalize_url((gfal2_context_t)handle, url);
 
     if (XrdPosixXrootd::Mkdir(sanitizedUrl.c_str(), mode) != 0) {
         if (errno == ECANCELED)
@@ -188,10 +188,10 @@ int gfal_xrootd_mkdirpG(plugin_handle plugin_data, const char *url, mode_t mode,
 }
 
 
-int gfal_xrootd_chmodG(plugin_handle plugin_data, const char *url, mode_t mode,
+int gfal_xrootd_chmodG(plugin_handle handle, const char *url, mode_t mode,
         GError **err)
 {
-    std::string sanitizedUrl = sanitize_url(url);
+    std::string sanitizedUrl = normalize_url((gfal2_context_t)handle, url);
 
     XrdClientAdmin client(sanitizedUrl.c_str());
     set_xrootd_log_level();
@@ -216,11 +216,11 @@ int gfal_xrootd_chmodG(plugin_handle plugin_data, const char *url, mode_t mode,
 }
 
 
-int gfal_xrootd_unlinkG(plugin_handle plugin_data, const char *url,
+int gfal_xrootd_unlinkG(plugin_handle handle, const char *url,
         GError **err)
 {
 
-    std::string sanitizedUrl = sanitize_url(url);
+    std::string sanitizedUrl = normalize_url((gfal2_context_t)handle, url);
 
     if (XrdPosixXrootd::Unlink(sanitizedUrl.c_str()) != 0) {
         g_set_error(err, xrootd_domain, errno, "[%s] Failed to delete file",
@@ -231,10 +231,10 @@ int gfal_xrootd_unlinkG(plugin_handle plugin_data, const char *url,
 }
 
 
-int gfal_xrootd_rmdirG(plugin_handle plugin_data, const char *url, GError **err)
+int gfal_xrootd_rmdirG(plugin_handle handle, const char *url, GError **err)
 {
 
-    std::string sanitizedUrl = sanitize_url(url);
+    std::string sanitizedUrl = normalize_url((gfal2_context_t)handle, url);
 
     if (XrdPosixXrootd::Rmdir(sanitizedUrl.c_str()) != 0) {
         if (errno == ECANCELED) errno =  ENOTEMPTY;
@@ -247,11 +247,11 @@ int gfal_xrootd_rmdirG(plugin_handle plugin_data, const char *url, GError **err)
 }
 
 
-int gfal_xrootd_accessG(plugin_handle plugin_data, const char *url, int mode,
+int gfal_xrootd_accessG(plugin_handle handle, const char *url, int mode,
         GError **err)
 {
 
-    std::string sanitizedUrl = sanitize_url(url);
+    std::string sanitizedUrl = normalize_url((gfal2_context_t)handle, url);
 
     if (XrdPosixXrootd::Access(sanitizedUrl.c_str(), mode) != 0) {
         g_set_error(err, xrootd_domain, errno,
@@ -262,12 +262,12 @@ int gfal_xrootd_accessG(plugin_handle plugin_data, const char *url, int mode,
 }
 
 
-int gfal_xrootd_renameG(plugin_handle plugin_data, const char *oldurl,
+int gfal_xrootd_renameG(plugin_handle handle, const char *oldurl,
         const char *urlnew, GError **err)
 {
 
-    std::string oldSanitizedUrl = sanitize_url(oldurl);
-    std::string newSanitizedUrl = sanitize_url(urlnew);
+    std::string oldSanitizedUrl = normalize_url((gfal2_context_t)handle, oldurl);
+    std::string newSanitizedUrl = normalize_url((gfal2_context_t)handle, urlnew);
 
     if (XrdPosixXrootd::Rename(oldSanitizedUrl.c_str(), newSanitizedUrl.c_str())
             != 0) {
@@ -398,10 +398,10 @@ public:
 };
 
 
-gfal_file_handle gfal_xrootd_opendirG(plugin_handle plugin_data,
+gfal_file_handle gfal_xrootd_opendirG(plugin_handle handle,
         const char* url, GError** err)
 {
-    std::string sanitizedUrl = sanitize_url(url);
+    std::string sanitizedUrl = normalize_url((gfal2_context_t)handle, url);
     XrdCl::URL parsed(sanitizedUrl);
 
     // Need to do stat first so we can fail syncrhonously for some errors!
@@ -477,12 +477,12 @@ int gfal_xrootd_closedirG(plugin_handle plugin_data, gfal_file_handle dir_desc,
 }
 
 
-int gfal_xrootd_checksumG(plugin_handle data, const char* url,
+int gfal_xrootd_checksumG(plugin_handle handle, const char* url,
         const char* check_type, char * checksum_buffer, size_t buffer_length,
         off_t start_offset, size_t data_length, GError ** err)
 {
 
-    std::string sanitizedUrl = sanitize_url(url);
+    std::string sanitizedUrl = normalize_url((gfal2_context_t)handle, url);
     std::string lowerChecksumType = predefinedChecksumTypeToLower(check_type);
 
     if (start_offset != 0 || data_length != 0) {

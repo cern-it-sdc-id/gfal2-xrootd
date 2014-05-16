@@ -23,6 +23,7 @@
 #ifndef GFAL_XROOTD_PLUGIN_UTILS_H_
 #define GFAL_XROOTD_PLUGIN_UTILS_H_
 
+#include <gfal_api.h>
 #include <string>
 #include <sys/stat.h>
 
@@ -33,7 +34,8 @@ void file_mode_to_xrootd_ints(mode_t mode, int& user, int& group, int& other);
 void reset_stat(struct stat& st);
 
 /// Return the same URL, but making sure the path is always relative
-std::string sanitize_url(const char* url);
+/// and adding the user credentials appended as keywords
+std::string normalize_url(gfal2_context_t context, const char* url);
 
 /// If the checksum type is one of the predefined ones, always lowercase
 /// @note adler32, crc32, md5

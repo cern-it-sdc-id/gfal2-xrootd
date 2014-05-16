@@ -111,9 +111,8 @@ private:
 
 
 int gfal_xrootd_3rdcopy_check(plugin_handle plugin_data,
-                              gfal_context_t context,
-                              const char* src, const char* dst,
-                              gfal_url2_check check)
+        gfal_context_t context, const char* src, const char* dst,
+        gfal_url2_check check)
 {
   if (check != GFAL_FILE_COPY) return 0;
 
@@ -123,9 +122,10 @@ int gfal_xrootd_3rdcopy_check(plugin_handle plugin_data,
 
 
 
-void gfal_xrootd_3rd_init_url(XrdCl::URL& xurl, const char* url, const char* token)
+static void gfal_xrootd_3rd_init_url(gfal2_context_t context,
+        XrdCl::URL& xurl, const char* url, const char* token)
 {
-  xurl.FromString(sanitize_url(url));
+  xurl.FromString(normalize_url(context, url));
   if (token) {
     XrdCl::URL::ParamsMap params;
     params.insert(std::make_pair("svcClass", token));
@@ -142,8 +142,8 @@ int gfal_xrootd_3rd_copy(plugin_handle plugin_data, gfal2_context_t context,
   GError* internalError = NULL;
 
   XrdCl::URL source_url, dest_url;
-  gfal_xrootd_3rd_init_url(source_url, src, gfalt_get_src_spacetoken(params, NULL));
-  gfal_xrootd_3rd_init_url(dest_url, dst, gfalt_get_dst_spacetoken(params, NULL));
+  gfal_xrootd_3rd_init_url(context, source_url, src, gfalt_get_src_spacetoken(params, NULL));
+  gfal_xrootd_3rd_init_url(context, dest_url, dst, gfalt_get_dst_spacetoken(params, NULL));
 
   XrdCl::PropertyList job;
 

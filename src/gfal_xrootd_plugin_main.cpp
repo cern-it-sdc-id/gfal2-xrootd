@@ -39,6 +39,8 @@ gfal_plugin_interface gfal_plugin_init(gfal_handle handle, GError** err) {
   // set xrootd log level
   set_xrootd_log_level();
 
+  xrootd_plugin.plugin_data = handle;
+
   xrootd_plugin.getName = &gfal_xrootd_getName;
   xrootd_plugin.check_plugin_url = &gfal_xrootd_check_url;
 
