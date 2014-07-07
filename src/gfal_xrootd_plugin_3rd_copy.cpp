@@ -31,6 +31,7 @@
 #undef FALSE
 
 #include <XrdCl/XrdClCopyProcess.hh>
+#include <XrdVersion.hh>
 
 #define XROOTD_DEFAULT_CHECKSUM "COPY_CHECKSUM_TYPE"
 
@@ -110,9 +111,15 @@ private:
 
 
 
+#if GFAL2_VERSION_MAJOR >=2 && GFAL2_VERSION_MINOR >= 6
 int gfal_xrootd_3rdcopy_check(plugin_handle plugin_data,
         gfal_context_t context, const char* src, const char* dst,
         gfal_url2_check check)
+#else
+int gfal_xrootd_3rdcopy_check(plugin_handle plugin_data,
+         const char* src, const char* dst,
+         gfal_url2_check check)
+#endif
 {
   if (check != GFAL_FILE_COPY) return 0;
 
@@ -145,6 +152,7 @@ int gfal_xrootd_3rd_copy(plugin_handle plugin_data, gfal2_context_t context,
   gfal_xrootd_3rd_init_url(context, source_url, src, gfalt_get_src_spacetoken(params, NULL));
   gfal_xrootd_3rd_init_url(context, dest_url, dst, gfalt_get_dst_spacetoken(params, NULL));
 
+#if XrdMajorVNUM(XrdVNUMBER) == 4
   XrdCl::PropertyList job;
 
   job.Set("source", source_url.GetURL());
@@ -153,6 +161,15 @@ int gfal_xrootd_3rd_copy(plugin_handle plugin_data, gfal2_context_t context,
   job.Set("posc", true);
   job.Set("thirdParty", "only");
   job.Set("tpcTimeout", gfalt_get_timeout(params, NULL));
+#else
+  XrdCl::JobDescriptor job;
+
+  job.force              = gfalt_get_replace_existing_file(params, NULL);;
+  job.posc               = true;
+  job.thirdParty         = true;
+  job.thirdPartyFallBack = false;
+  job.checkSumPrint      = false;
+#endif
 
   char checksumType[64] = {0};
   char checksumValue[512] = {0};
@@ -180,15 +197,24 @@ int gfal_xrootd_3rd_copy(plugin_handle plugin_data, gfal2_context_t context,
       g_free(defaultChecksumType);
     }
 
+#if XrdMajorVNUM(XrdVNUMBER) == 4
     job.Set("checkSumMode", "end2end");
     job.Set("checkSumType", predefinedChecksumTypeToLower(checksumType));
     job.Set("checkSumPreset", checksumValue);
+#else
+    job.checkSumType   = predefinedChecksumTypeToLower(checksumType);
+    job.checkSumPreset = checksumValue;
+#endif
   }
 
-  XrdCl::PropertyList results;
   XrdCl::CopyProcess process;
-  process.AddJob(job, &results);
 
+#if XrdMajorVNUM(XrdVNUMBER) == 4
+  XrdCl::PropertyList results;
+  process.AddJob(job, &results);
+#else
+  process.AddJob(&job);
+#endif
 
   XrdCl::XRootDStatus status = process.Prepare();
   if (!status.IsOK()) {
