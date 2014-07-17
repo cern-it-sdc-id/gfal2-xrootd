@@ -113,7 +113,7 @@ private:
 
 #if GFAL2_VERSION_MAJOR >=2 && GFAL2_VERSION_MINOR >= 6
 int gfal_xrootd_3rdcopy_check(plugin_handle plugin_data,
-        gfal_context_t context, const char* src, const char* dst,
+        gfal2_context_t context, const char* src, const char* dst,
         gfal_url2_check check)
 #else
 int gfal_xrootd_3rdcopy_check(plugin_handle plugin_data,
