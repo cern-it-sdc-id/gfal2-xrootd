@@ -3,7 +3,7 @@
 
 Name:           gfal2-plugin-xrootd
 Version:        0.3.1
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Provide xrootd support for GFAL2
 
 Group:          Applications/Internet
