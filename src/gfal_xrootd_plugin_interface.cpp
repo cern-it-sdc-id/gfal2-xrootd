@@ -50,7 +50,9 @@ GQuark xrootd_domain = g_quark_from_static_string("xroot");
 void set_xrootd_log_level()
 {
     // Note: xrootd lib logs to stderr
-    if (gfal_get_verbose() & GFAL_VERBOSE_TRACE)
+    if (gfal_get_verbose() & GFAL_VERBOSE_TRACE_PLUGIN)
+        XrdPosixXrootd::setDebug(4);
+    else if (gfal_get_verbose() & GFAL_VERBOSE_TRACE)
         XrdPosixXrootd::setDebug(3);
     else if (gfal_get_verbose() & GFAL_VERBOSE_DEBUG)
         XrdPosixXrootd::setDebug(2);
@@ -284,7 +286,7 @@ class DirListHandler: public XrdCl::ResponseHandler
 private:
     XrdCl::URL url;
     XrdCl::FileSystem fs;
-    std::list<XrdCl::DirectoryList::ListEntry> entries;
+    std::list<XrdCl::DirectoryList::ListEntry*> entries;
 
     struct dirent dbuffer;
 
@@ -322,7 +324,7 @@ public:
             if (list) {
                 XrdCl::DirectoryList::ConstIterator i;
                 for (i = list->Begin(); i != list->End(); ++i) {
-                    entries.push_back(**i);
+                    entries.push_back(*i);
                 }
             }
         }
@@ -362,25 +364,25 @@ public:
         if (entries.empty())
             return NULL;
 
-        XrdCl::DirectoryList::ListEntry entry = entries.front();
+        XrdCl::DirectoryList::ListEntry* entry = entries.front();
         entries.pop_front();
 
-        XrdCl::StatInfo* stinfo = entry.GetStatInfo();
+        XrdCl::StatInfo* stinfo = entry->GetStatInfo();
 
-        strncpy(dbuffer.d_name, entry.GetName().c_str(), sizeof(dbuffer.d_name));
-        dbuffer.d_reclen = entry.GetName().size();
+        g_strlcpy(dbuffer.d_name, entry->GetName().c_str(), sizeof(dbuffer.d_name));
+        dbuffer.d_reclen = strlen(dbuffer.d_name);
 
         if (stinfo && stinfo->TestFlags(XrdCl::StatInfo::IsDir))
             dbuffer.d_type = DT_DIR;
         else
             dbuffer.d_type = DT_REG;
 
-
         if (st != NULL) {
             if (stinfo != NULL) {
                 StatInfo2Stat(stinfo, st);
             }
             else {
+                stinfo = new XrdCl::StatInfo();
                 std::string fullPath = url.GetPath() + "/" + dbuffer.d_name;
                 XrdCl::XRootDStatus status = this->fs.Stat(fullPath, stinfo);
                 if (!status.IsOK()) {
@@ -393,6 +395,7 @@ public:
             }
         }
 
+        delete entry;
         return &dbuffer;
     }
 };
