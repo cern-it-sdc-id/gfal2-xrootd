@@ -33,6 +33,8 @@
 #include <XrdCl/XrdClFileSystem.hh>
 #include <XrdCl/XrdClXRootDResponses.hh>
 
+#include <XrdVersion.hh>
+
 // TRUE and FALSE are defined in Glib and xrootd headers
 #ifdef TRUE
 #undef TRUE
@@ -382,7 +384,11 @@ public:
                 StatInfo2Stat(stinfo, st);
             }
             else {
+#if XrdMajorVNUM(XrdVNUMBER) == 4
                 stinfo = new XrdCl::StatInfo();
+#else
+                stinfo = new XrdCl::StatInfo("");
+#endif
                 std::string fullPath = url.GetPath() + "/" + dbuffer.d_name;
                 XrdCl::XRootDStatus status = this->fs.Stat(fullPath, stinfo);
                 if (!status.IsOK()) {
