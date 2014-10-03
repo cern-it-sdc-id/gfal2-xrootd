@@ -29,7 +29,7 @@ extern "C" {
 
 gboolean gfal_xrootd_check_url(plugin_handle ch, const char* url,  plugin_mode mode, GError** err);
 
-gfal_plugin_interface gfal_plugin_init(gfal_handle handle, GError** err) {
+gfal_plugin_interface gfal_plugin_init(gfal2_context_t handle, GError** err) {
 
   static XrdPosixXrootd singleXroot;
 
@@ -37,7 +37,7 @@ gfal_plugin_interface gfal_plugin_init(gfal_handle handle, GError** err) {
   memset(&xrootd_plugin,0,sizeof(gfal_plugin_interface)); // clear the plugin
 
   // set xrootd log level
-  set_xrootd_log_level();
+  //set_xrootd_log_level();
 
   xrootd_plugin.plugin_data = handle;
 
