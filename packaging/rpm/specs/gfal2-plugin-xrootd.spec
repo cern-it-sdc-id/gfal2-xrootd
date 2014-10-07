@@ -8,7 +8,7 @@ Summary:        Provide xrootd support for GFAL2
 
 Group:          Applications/Internet
 License:        ASL 2.0
-URL:            https://svnweb.cern.ch/trac/lcgutil/wiki/gfal2
+URL:            http://dmc.web.cern.ch/projects/gfal-2/home
 Source0:        http://grid-deployment.web.cern.ch/grid-deployment/dms/lcgutil/tar/%{name}/%{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
