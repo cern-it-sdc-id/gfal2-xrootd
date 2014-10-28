@@ -185,7 +185,7 @@ int gfal_xrootd_mkdirpG(plugin_handle handle, const char *url, mode_t mode,
         if (errno == ECANCELED)
             errno = EEXIST;
         g_set_error(err, xrootd_domain, errno,
-                "[%s] Failed to create directory", __func__);
+                "[%s] Failed to create directory %s", __func__, url);
         return -1;
     }
     return 0;
@@ -241,8 +241,8 @@ int gfal_xrootd_rmdirG(plugin_handle handle, const char *url, GError **err)
     std::string sanitizedUrl = normalize_url((gfal2_context_t)handle, url);
 
     if (XrdPosixXrootd::Rmdir(sanitizedUrl.c_str()) != 0) {
-        if (errno == ECANCELED) errno =  ENOTEMPTY;
-        else if (errno == ENOSYS) errno = ENOTDIR;
+        if (errno == EEXIST) errno =  ENOTEMPTY;
+        else if (errno == EIO) errno = ENOTDIR;
         g_set_error(err, xrootd_domain, errno,
                 "[%s] Failed to delete directory", __func__);
         return -1;
