@@ -2,7 +2,7 @@
 %{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{name}-%{version}}
 
 Name:           gfal2-plugin-xrootd
-Version:        0.3.2
+Version:        0.3.3
 Release:        1%{?dist}
 Summary:        Provide xrootd support for GFAL2
 
