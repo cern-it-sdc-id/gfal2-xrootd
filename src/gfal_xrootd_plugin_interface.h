@@ -13,9 +13,9 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-* 
+*
 * Authors : David Cameron, Alejandro Alvarez Ayllon, Adrien Devresse
-* 
+*
 */
 
 
@@ -24,7 +24,9 @@
 
 #include <gfal_plugins_api.h>
 
-#define XROOTD_CONFIG_GROUP "XROOTD PLUGIN"
+#define XROOTD_CONFIG_GROUP     "XROOTD PLUGIN"
+#define XROOTD_DEFAULT_CHECKSUM "COPY_CHECKSUM_TYPE"
+#define XROOTD_CHECKSUM_MODE    "COPY_CHECKSUM_MODE"
 
 extern "C" {
 

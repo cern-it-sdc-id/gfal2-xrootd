@@ -13,9 +13,9 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-* 
+*
 * Authors : David Cameron, Alejandro Alvarez Ayllon, Adrien Devresse
-* 
+*
 */
 
 
@@ -32,8 +32,6 @@
 
 #include <XrdCl/XrdClCopyProcess.hh>
 #include <XrdVersion.hh>
-
-#define XROOTD_DEFAULT_CHECKSUM "COPY_CHECKSUM_TYPE"
 
 
 
@@ -198,7 +196,9 @@ int gfal_xrootd_3rd_copy(plugin_handle plugin_data, gfal2_context_t context,
     }
 
 #if XrdMajorVNUM(XrdVNUMBER) == 4
-    job.Set("checkSumMode", "end2end");
+    job.Set("checkSumMode",
+                gfal2_get_opt_string_with_default(context, XROOTD_CONFIG_GROUP, XROOTD_CHECKSUM_MODE, "end2end")
+    );
     job.Set("checkSumType", predefinedChecksumTypeToLower(checksumType));
     job.Set("checkSumPreset", checksumValue);
 #else
