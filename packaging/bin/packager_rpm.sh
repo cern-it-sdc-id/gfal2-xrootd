@@ -4,7 +4,6 @@
 
 ## vars
 BASE_TMP=/tmp
-FINAL_DIR="RPMS/"
 
 TARBALL_FILTER="--exclude='.git' --exclude='.svn' --exclude='RPMS' --exclude='*.rpm'"
 FOO="HELLO"
@@ -87,7 +86,6 @@ if [[ "$1" == "" || "$2" == "" ]]; then
 fi
 
 create_rpmbuild_env $1
-mkdir -p SRPMS
 
 # list spec file
 for i in $1/*.spec 
@@ -102,8 +100,7 @@ do
 	echo "TARBALL: $RPM_BUILD_DIR/SOURCES/$SRC_NAME"
 	rpm_build_src_package `basename $i` 
 done
-mkdir -p  $FINAL_DIR
-cp $RPM_BUILD_DIR/SRPMS/* $FINAL_DIR
+cp $RPM_BUILD_DIR/SRPMS/* .
 ## clean everything
 delete_rpmbuild_env
 	
