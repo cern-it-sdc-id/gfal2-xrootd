@@ -62,16 +62,41 @@ public:
                          this->source.c_str(), this->destination.c_str());
   }
 
+#if XrdMajorVNUM(XrdVNUMBER) == 4
+  void EndJob(uint16_t jobNum, const XrdCl::PropertyList* result)
+  {
+    std::ostringstream msg;
+    msg << "Job finished";
 
+    if (result->HasProperty("status")) {
+        XrdCl::XRootDStatus status;
+        result->Get("status", status);
+        msg << ", " << status.ToStr();
+    }
+    if (result->HasProperty("realTarget")) {
+        std::string value;
+        result->Get("realTarget", value);
+        msg << ", Real target: " << value;
+    }
+
+    plugin_trigger_event(this->params, xrootd_domain,
+                             GFAL_EVENT_NONE, GFAL_EVENT_TRANSFER_EXIT,
+                             "%s", msg.str().c_str());
+  }
+#else
   void EndJob(const XrdCl::XRootDStatus &status)
   {
     plugin_trigger_event(this->params, xrootd_domain,
                          GFAL_EVENT_NONE, GFAL_EVENT_TRANSFER_EXIT,
                          "%s", status.ToStr().c_str());
   }
+#endif
 
-
+#if XrdMajorVNUM(XrdVNUMBER) == 4
+  void JobProgress(uint16_t jobNum, uint64_t bytesProcessed, uint64_t bytesTotal)
+#else
   void JobProgress(uint64_t bytesProcessed, uint64_t bytesTotal)
+#endif
   {
     if (this->monitorCallback) {
       time_t now = time(NULL);
