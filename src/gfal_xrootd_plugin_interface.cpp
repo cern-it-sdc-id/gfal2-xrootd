@@ -492,7 +492,7 @@ int gfal_xrootd_checksumG(plugin_handle handle, const char* url,
 {
 
     std::string sanitizedUrl = normalize_url((gfal2_context_t)handle, url);
-    std::string lowerChecksumType = predefinedChecksumTypeToLower(check_type);
+    std::string lowerChecksumType = predefined_checksum_type_to_lower(check_type);
 
     if (start_offset != 0 || data_length != 0) {
         g_set_error(err, xrootd_domain, ENOTSUP,
