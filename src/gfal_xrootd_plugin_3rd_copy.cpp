@@ -240,7 +240,9 @@ int gfal_xrootd_3rd_copy_bulk(plugin_handle plugin_data,
 
     // Configuration job
 #if XrdMajorVNUM(XrdVNUMBER) == 4
-    int parallel = gfal2_get_opt_integer_with_default(context, XROOTD_CONFIG_GROUP, XROOTD_PARALLEL_COPIES, nbfiles);
+    int parallel = gfal2_get_opt_integer_with_default(context,
+            XROOTD_CONFIG_GROUP, XROOTD_PARALLEL_COPIES,
+            20);
 
     XrdCl::PropertyList config_job;
     config_job.Set("jobType", "configuration");
