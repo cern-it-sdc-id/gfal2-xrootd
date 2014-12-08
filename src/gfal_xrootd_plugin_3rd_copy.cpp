@@ -239,7 +239,7 @@ int gfal_xrootd_3rd_copy(plugin_handle plugin_data, gfal2_context_t context,
 
     XrdCl::XRootDStatus status = process.Prepare();
     if (!status.IsOK()) {
-        g_set_error(err, 0, status.errNo,
+        g_set_error(err, 0, xrootd_errno_to_posix_errno(status.errNo),
                 "[%s] Error on XrdCl::CopyProcess::Prepare(): %s", __func__,
                 status.ToStr().c_str());
         return -1;
@@ -249,7 +249,7 @@ int gfal_xrootd_3rd_copy(plugin_handle plugin_data, gfal2_context_t context,
     status = process.Run(&feedback);
 
     if (!status.IsOK()) {
-        g_set_error(err, 0, status.errNo,
+        g_set_error(err, 0, xrootd_errno_to_posix_errno(status.errNo),
                 "[%s] Error on XrdCl::CopyProcess::Run(): %s", __func__,
                 status.ToStr().c_str());
         return -1;

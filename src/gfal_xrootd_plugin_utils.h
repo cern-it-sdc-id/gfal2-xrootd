@@ -13,9 +13,9 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
-* 
+*
 * Authors : David Cameron, Alejandro Alvarez Ayllon, Adrien Devresse
-* 
+*
 */
 
 
@@ -40,5 +40,8 @@ std::string normalize_url(gfal2_context_t context, const char* url);
 /// If the checksum type is one of the predefined ones, always lowercase
 /// @note adler32, crc32, md5
 std::string predefined_checksum_type_to_lower(const std::string& type);
+
+/// Map an xrootd errno to a posix errno
+int xrootd_errno_to_posix_errno(int rc);
 
 #endif /* GFAL_XROOTD_PLUGIN_UTILS_H_ */

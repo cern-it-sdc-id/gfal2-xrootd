@@ -19,8 +19,10 @@
 */
 #include <algorithm>
 #include <cstring>
+#include <errno.h>
 #include <fcntl.h>
 #include <sstream>
+#include <XProtocol/XProtocol.hh>
 
 #include "gfal_xrootd_plugin_utils.h"
 
@@ -139,4 +141,33 @@ std::string predefined_checksum_type_to_lower(const std::string& type)
         return lowerForm;
     else
         return type;
+}
+
+// Copied from xrootd/src/XrdPosix/XrdPosixMap.cc
+int xrootd_errno_to_posix_errno(int rc)
+{
+    switch(rc)
+       {case kXR_ArgInvalid:    return EINVAL;
+        case kXR_ArgMissing:    return EINVAL;
+        case kXR_ArgTooLong:    return ENAMETOOLONG;
+        case kXR_FileLocked:    return EDEADLK;
+        case kXR_FileNotOpen:   return EBADF;
+        case kXR_FSError:       return EIO;
+        case kXR_InvalidRequest:return EEXIST;
+        case kXR_IOError:       return EIO;
+        case kXR_NoMemory:      return ENOMEM;
+        case kXR_NoSpace:       return ENOSPC;
+        case kXR_NotAuthorized: return EACCES;
+        case kXR_NotFound:      return ENOENT;
+        case kXR_ServerError:   return ENOMSG;
+        case kXR_Unsupported:   return ENOSYS;
+        case kXR_noserver:      return EHOSTUNREACH;
+        case kXR_NotFile:       return ENOTBLK;
+        case kXR_isDirectory:   return EISDIR;
+        case kXR_Cancelled:     return ECANCELED;
+        case kXR_ChkLenErr:     return EDOM;
+        case kXR_ChkSumErr:     return EDOM;
+        case kXR_inProgress:    return EINPROGRESS;
+        default:                return ENOMSG;
+       }
 }
