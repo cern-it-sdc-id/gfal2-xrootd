@@ -79,6 +79,7 @@ gfal_plugin_interface gfal_plugin_init(gfal2_context_t handle, GError** err)
 
     xrootd_plugin.check_plugin_url_transfer = gfal_xrootd_3rdcopy_check;
     xrootd_plugin.copy_file = gfal_xrootd_3rd_copy;
+    xrootd_plugin.copy_bulk = gfal_xrootd_3rd_copy_bulk;
 
     return xrootd_plugin;
 }

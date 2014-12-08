@@ -142,7 +142,7 @@ int gfal_xrootd_3rdcopy_check(plugin_handle plugin_data, const char* src,
         const char* dst, gfal_url2_check check)
 #endif
 {
-    if (check != GFAL_FILE_COPY)
+    if (check != GFAL_FILE_COPY && check != GFAL_BULK_COPY)
         return 0;
 
     return (strncmp(src, "root://", 7) == 0 && strncmp(dst, "root://", 7) == 0);
@@ -161,99 +161,161 @@ static void gfal_xrootd_3rd_init_url(gfal2_context_t context, XrdCl::URL& xurl,
 }
 
 
-int gfal_xrootd_3rd_copy(plugin_handle plugin_data, gfal2_context_t context,
-        gfalt_params_t params, const char* src, const char* dst, GError** err)
+int gfal_xrootd_3rd_copy_bulk(plugin_handle plugin_data,
+        gfal2_context_t context, gfalt_params_t params, size_t nbfiles,
+        const char* const * srcs, const char* const * dsts,
+        const char* const * checksums, GError** op_error,
+        GError*** file_errors)
 {
     GError* internalError = NULL;
-
-    XrdCl::URL source_url, dest_url;
-    gfal_xrootd_3rd_init_url(context, source_url, src,
-            gfalt_get_src_spacetoken(params, NULL));
-    gfal_xrootd_3rd_init_url(context, dest_url, dst,
-            gfalt_get_dst_spacetoken(params, NULL));
-
-#if XrdMajorVNUM(XrdVNUMBER) == 4
-    XrdCl::PropertyList job;
-
-    job.Set("source", source_url.GetURL());
-    job.Set("target", dest_url.GetURL());
-    job.Set("force", gfalt_get_replace_existing_file(params, NULL));
-    job.Set("posc", true);
-    job.Set("thirdParty", "only");
-    job.Set("tpcTimeout", gfalt_get_timeout(params, NULL));
-#else
-    XrdCl::JobDescriptor job;
-
-    job.force = gfalt_get_replace_existing_file(params, NULL);;
-    job.posc = true;
-    job.thirdParty = true;
-    job.thirdPartyFallBack = false;
-    job.checkSumPrint = false;
-#endif
-
-    char checksumType[64] = {
-            0 };
-    char checksumValue[512] = {
-            0 };
-
+    char checksumType[64] = { 0 };
+    char checksumValue[512] = { 0 };
     bool performChecksum = gfalt_get_checksum_check(params, NULL);
 
-    if (performChecksum) {
-        gfalt_get_user_defined_checksum(params, checksumType,
-                sizeof(checksumType), checksumValue, sizeof(checksumValue),
-                NULL);
-        if (!checksumType[0] || !checksumValue[0]) {
-            char* defaultChecksumType = gfal2_get_opt_string(context,
-            XROOTD_CONFIG_GROUP, XROOTD_DEFAULT_CHECKSUM, &internalError);
-            if (internalError) {
-                g_set_error(err, xrootd_domain, internalError->code, "[%s] %s",
-                        __func__, internalError->message);
-                g_error_free(internalError);
-                return -1;
+    XrdCl::CopyProcess copy_process;
+    XrdCl::PropertyList results[nbfiles];
+
+    const char* src_spacetoken =  gfalt_get_src_spacetoken(params, NULL);
+    const char* dst_spacetoken =  gfalt_get_dst_spacetoken(params, NULL);
+
+    for (int i = 0; i < nbfiles; ++i) {
+        XrdCl::URL source_url, dest_url;
+        gfal_xrootd_3rd_init_url(context, source_url, srcs[i], src_spacetoken);
+        gfal_xrootd_3rd_init_url(context, dest_url, dsts[i], dst_spacetoken);
+
+#if XrdMajorVNUM(XrdVNUMBER) == 4
+        XrdCl::PropertyList job;
+
+        job.Set("source", source_url.GetURL());
+        job.Set("target", dest_url.GetURL());
+        job.Set("force", gfalt_get_replace_existing_file(params, NULL));
+        job.Set("posc", true);
+        job.Set("thirdParty", "only");
+        job.Set("tpcTimeout", gfalt_get_timeout(params, NULL));
+#else
+        XrdCl::JobDescriptor job;
+
+        job.force = gfalt_get_replace_existing_file(params, NULL);;
+        job.posc = true;
+        job.thirdParty = true;
+        job.thirdPartyFallBack = false;
+        job.checkSumPrint = false;
+#endif
+
+        if (performChecksum) {
+            checksumType[0] = '\0';
+            checksumValue[0] = '\0';
+            sscanf(checksums[i], "%s:%s", checksumType, checksumValue);
+
+            if (!checksumType[0] || !checksumValue[0]) {
+                char* defaultChecksumType = gfal2_get_opt_string(context, XROOTD_CONFIG_GROUP, XROOTD_DEFAULT_CHECKSUM, &internalError);
+                if (internalError) {
+                    g_set_error(op_error, xrootd_domain, internalError->code, "[%s] %s", __func__, internalError->message);
+                    g_error_free(internalError);
+                    return -1;
+                }
+
+                strncpy(checksumType, defaultChecksumType, sizeof(checksumType));
+                g_free(defaultChecksumType);
             }
 
-            strncpy(checksumType, defaultChecksumType, sizeof(checksumType));
-            g_free(defaultChecksumType);
+#if XrdMajorVNUM(XrdVNUMBER) == 4
+            job.Set("checkSumMode",
+                    gfal2_get_opt_string_with_default(context, XROOTD_CONFIG_GROUP, XROOTD_CHECKSUM_MODE, "end2end"));
+            job.Set("checkSumType", predefined_checksum_type_to_lower(checksumType));
+            job.Set("checkSumPreset", checksumValue);
+#else
+            job.checkSumType = predefined_checksum_type_to_lower(checksumType);
+            job.checkSumPreset = checksumValue;
+#endif
         }
 
 #if XrdMajorVNUM(XrdVNUMBER) == 4
-        job.Set("checkSumMode",
-                gfal2_get_opt_string_with_default(context, XROOTD_CONFIG_GROUP,
-                        XROOTD_CHECKSUM_MODE, "end2end"));
-        job.Set("checkSumType", predefined_checksum_type_to_lower(checksumType));
-        job.Set("checkSumPreset", checksumValue);
+        copy_process.AddJob(job, &(results[i]));
 #else
-        job.checkSumType = predefined_checksum_type_to_lower(checksumType);
-        job.checkSumPreset = checksumValue;
+        copy_process.AddJob(&job);
 #endif
+
     }
 
-    XrdCl::CopyProcess process;
-
+    // Configuration job
 #if XrdMajorVNUM(XrdVNUMBER) == 4
-    XrdCl::PropertyList results;
-    process.AddJob(job, &results);
-#else
-    process.AddJob(&job);
+    int parallel = gfal2_get_opt_integer_with_default(context, XROOTD_CONFIG_GROUP, XROOTD_PARALLEL_COPIES, nbfiles);
+
+    XrdCl::PropertyList config_job;
+    config_job.Set("jobType", "configuration");
+    config_job.Set("parallel", parallel);
+    copy_process.AddJob(config_job, NULL);
 #endif
 
-    XrdCl::XRootDStatus status = process.Prepare();
+    XrdCl::XRootDStatus status = copy_process.Prepare();
     if (!status.IsOK()) {
-        g_set_error(err, 0, xrootd_errno_to_posix_errno(status.errNo),
+        g_set_error(op_error, xrootd_domain,
+                xrootd_errno_to_posix_errno(status.errNo),
                 "[%s] Error on XrdCl::CopyProcess::Prepare(): %s", __func__,
                 status.ToStr().c_str());
         return -1;
     }
 
     CopyFeedback feedback(context, params);
-    status = process.Run(&feedback);
+    status = copy_process.Run(&feedback);
 
-    if (!status.IsOK()) {
-        g_set_error(err, 0, xrootd_errno_to_posix_errno(status.errNo),
+    // On bulk operations, even if there is one single failure we will get it
+    // here, so ignore!
+    if (nbfiles == 1 && !status.IsOK()) {
+        g_set_error(op_error, xrootd_domain,
+                xrootd_errno_to_posix_errno(status.errNo),
                 "[%s] Error on XrdCl::CopyProcess::Run(): %s", __func__,
                 status.ToStr().c_str());
         return -1;
     }
 
-    return 0;
+    // For bulk operations, here we do get the actual status per file
+    int n_failed = 0;
+    *file_errors = g_new0(GError*, nbfiles);
+    for (int i = 0; i < nbfiles; ++i) {
+        status = results[i].Get<XrdCl::XRootDStatus>("status");
+        if (!status.IsOK()) {
+            g_set_error(&((*file_errors)[i]), xrootd_domain,
+                    xrootd_errno_to_posix_errno(status.errNo),
+                    "[%s] Error on XrdCl::CopyProcess::Run(): %s", __func__,
+                    status.ToStr().c_str());
+            ++n_failed;
+        }
+    }
+
+    return -n_failed;
+}
+
+
+int gfal_xrootd_3rd_copy(plugin_handle plugin_data, gfal2_context_t context,
+        gfalt_params_t params, const char* src, const char* dst, GError** err)
+{
+    GError* op_error = NULL;
+    GError** file_error = NULL;
+
+    char checksumType[64] = { 0 };
+    char checksumValue[512] = { 0 };
+    gfalt_get_user_defined_checksum(params, checksumType, sizeof(checksumType),
+            checksumValue, sizeof(checksumValue),
+            NULL);
+    char checksumConcat[576];
+    snprintf(checksumConcat, sizeof(checksumConcat), "%s:%s", checksumType, checksumValue);
+
+    int ret = gfal_xrootd_3rd_copy_bulk(plugin_data,
+            context, params, 1,
+            &src, &dst, (const char*const*)&checksumConcat,
+            &op_error, &file_error);
+
+    if (ret < 0) {
+        if (op_error) {
+            gfal2_propagate_prefixed_error(err, op_error, __func__);
+        }
+        else {
+            gfal2_propagate_prefixed_error(err, file_error[0], __func__);
+            g_free(file_error);
+        }
+    }
+
+    return ret;
 }

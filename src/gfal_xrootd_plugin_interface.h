@@ -27,6 +27,7 @@
 #define XROOTD_CONFIG_GROUP     "XROOTD PLUGIN"
 #define XROOTD_DEFAULT_CHECKSUM "COPY_CHECKSUM_TYPE"
 #define XROOTD_CHECKSUM_MODE    "COPY_CHECKSUM_MODE"
+#define XROOTD_PARALLEL_COPIES  "PARALLEL_COPIES"
 
 extern "C" {
 
@@ -83,6 +84,12 @@ int gfal_xrootd_3rd_copy(plugin_handle plugin_data, gfal2_context_t context,
                          gfalt_params_t params,
                          const char* src, const char* dst,
                          GError** err);
+
+int gfal_xrootd_3rd_copy_bulk(plugin_handle plugin_data,
+        gfal2_context_t context, gfalt_params_t params, size_t nbfiles,
+        const char* const * srcs, const char* const * dsts,
+        const char* const * checksums, GError** op_error,
+        GError*** file_errors);
 
 const char* gfal_xrootd_getName();
 
