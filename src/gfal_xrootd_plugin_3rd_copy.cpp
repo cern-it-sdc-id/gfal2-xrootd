@@ -173,7 +173,9 @@ int gfal_xrootd_3rd_copy_bulk(plugin_handle plugin_data,
     bool performChecksum = gfalt_get_checksum_check(params, NULL);
 
     XrdCl::CopyProcess copy_process;
+#if XrdMajorVNUM(XrdVNUMBER) == 4
     XrdCl::PropertyList results[nbfiles];
+#endif
 
     const char* src_spacetoken =  gfalt_get_src_spacetoken(params, NULL);
     const char* dst_spacetoken =  gfalt_get_dst_spacetoken(params, NULL);
@@ -195,6 +197,8 @@ int gfal_xrootd_3rd_copy_bulk(plugin_handle plugin_data,
 #else
         XrdCl::JobDescriptor job;
 
+        job.source = source_url;
+        job.target = dest_url;
         job.force = gfalt_get_replace_existing_file(params, NULL);;
         job.posc = true;
         job.thirdParty = true;
@@ -274,6 +278,7 @@ int gfal_xrootd_3rd_copy_bulk(plugin_handle plugin_data,
 
     // For bulk operations, here we do get the actual status per file
     int n_failed = 0;
+#if XrdMajorVNUM(XrdVNUMBER) == 4
     *file_errors = g_new0(GError*, nbfiles);
     for (int i = 0; i < nbfiles; ++i) {
         status = results[i].Get<XrdCl::XRootDStatus>("status");
@@ -285,7 +290,7 @@ int gfal_xrootd_3rd_copy_bulk(plugin_handle plugin_data,
             ++n_failed;
         }
     }
-
+#endif
     return -n_failed;
 }
 
