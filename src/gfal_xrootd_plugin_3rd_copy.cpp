@@ -214,7 +214,8 @@ int gfal_xrootd_3rd_copy_bulk(plugin_handle plugin_data,
             if (!checksumType[0] || !checksumValue[0]) {
                 char* defaultChecksumType = gfal2_get_opt_string(context, XROOTD_CONFIG_GROUP, XROOTD_DEFAULT_CHECKSUM, &internalError);
                 if (internalError) {
-                    g_set_error(op_error, xrootd_domain, internalError->code, "[%s] %s", __func__, internalError->message);
+                    gfal2_set_error(op_error, xrootd_domain, internalError->code, __func__,
+                            "%s", internalError->message);
                     g_error_free(internalError);
                     return -1;
                 }
@@ -256,10 +257,9 @@ int gfal_xrootd_3rd_copy_bulk(plugin_handle plugin_data,
 
     XrdCl::XRootDStatus status = copy_process.Prepare();
     if (!status.IsOK()) {
-        g_set_error(op_error, xrootd_domain,
-                xrootd_errno_to_posix_errno(status.errNo),
-                "[%s] Error on XrdCl::CopyProcess::Prepare(): %s", __func__,
-                status.ToStr().c_str());
+        gfal2_set_error(op_error, xrootd_domain,
+                xrootd_errno_to_posix_errno(status.errNo), __func__,
+                "Error on XrdCl::CopyProcess::Prepare(): %s", status.ToStr().c_str());
         return -1;
     }
 
@@ -269,10 +269,9 @@ int gfal_xrootd_3rd_copy_bulk(plugin_handle plugin_data,
     // On bulk operations, even if there is one single failure we will get it
     // here, so ignore!
     if (nbfiles == 1 && !status.IsOK()) {
-        g_set_error(op_error, xrootd_domain,
-                xrootd_errno_to_posix_errno(status.errNo),
-                "[%s] Error on XrdCl::CopyProcess::Run(): %s", __func__,
-                status.ToStr().c_str());
+        gfal2_set_error(op_error, xrootd_domain,
+                xrootd_errno_to_posix_errno(status.errNo), __func__,
+                "Error on XrdCl::CopyProcess::Run(): %s", status.ToStr().c_str());
         return -1;
     }
 
@@ -283,10 +282,9 @@ int gfal_xrootd_3rd_copy_bulk(plugin_handle plugin_data,
     for (int i = 0; i < nbfiles; ++i) {
         status = results[i].Get<XrdCl::XRootDStatus>("status");
         if (!status.IsOK()) {
-            g_set_error(&((*file_errors)[i]), xrootd_domain,
-                    xrootd_errno_to_posix_errno(status.errNo),
-                    "[%s] Error on XrdCl::CopyProcess::Run(): %s", __func__,
-                    status.ToStr().c_str());
+            gfal2_set_error(&((*file_errors)[i]), xrootd_domain,
+                    xrootd_errno_to_posix_errno(status.errNo), __func__,
+                    "Error on XrdCl::CopyProcess::Run(): %s", status.ToStr().c_str());
             ++n_failed;
         }
     }
