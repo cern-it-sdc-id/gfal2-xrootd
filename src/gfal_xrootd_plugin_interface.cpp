@@ -510,6 +510,38 @@ int gfal_xrootd_checksumG(plugin_handle handle, const char* url,
     return 0;
 }
 
+
+ssize_t gfal_xrootd_getxattrG(plugin_handle plugin_data, const char* url, const char* key,
+                            void* buff, size_t s_buff, GError** err)
+{
+    memset(buff, 0x00, s_buff);
+    long long len = XrdPosixXrootd::Getxattr(url, key, buff, s_buff);
+    if (len < 0) {
+        gfal2_set_error(err, xrootd_domain, errno, __func__, "Failed to get the xattr \"%s\"", key);
+    }
+    return len;
+}
+
+
+ssize_t gfal_xrootd_listxattrG(plugin_handle plugin_data, const char* url,
+        char* list, size_t s_list, GError** err)
+{
+    static const char props[] = "xrootd.cksum\0xrootd.space\0xrootd.xattr";
+    static const size_t proplen = sizeof(props);
+    size_t len = proplen > s_list ? s_list : proplen;
+    char *end = (char*)mempcpy(list, props, proplen);
+    return end - list;
+}
+
+
+int gfal_xrootd_setxattrG(plugin_handle plugin_data, const char* url, const char* key,
+                    const void* buff , size_t s_buff, int flags, GError** err)
+{
+    gfal2_set_error(err, xrootd_domain, ENOSYS, __func__, "Can not set extended attributes");
+    return -1;
+}
+
+
 const char* gfal_xrootd_getName()
 {
     return "xrootd";

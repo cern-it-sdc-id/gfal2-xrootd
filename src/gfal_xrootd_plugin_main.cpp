@@ -68,9 +68,9 @@ gfal_plugin_interface gfal_plugin_init(gfal2_context_t handle, GError** err)
     xrootd_plugin.readdirppG = &gfal_xrootd_readdirppG;
     xrootd_plugin.closedirG = &gfal_xrootd_closedirG;
 
-    xrootd_plugin.getxattrG = NULL; // &gfal_xrootd_getxattrG;
-    xrootd_plugin.listxattrG = NULL; // &gfal_xrootd_listxattrG;
-    xrootd_plugin.setxattrG = NULL; // &gfal_xrootd_setxattrG;
+    xrootd_plugin.getxattrG = &gfal_xrootd_getxattrG;
+    xrootd_plugin.listxattrG = &gfal_xrootd_listxattrG;
+    xrootd_plugin.setxattrG = &gfal_xrootd_setxattrG;
 
     xrootd_plugin.readlinkG = NULL; // symlinks not supported on xrootd
     xrootd_plugin.symlinkG = NULL; // symlinks not supported on xrootd
@@ -104,6 +104,9 @@ gboolean gfal_xrootd_check_url(plugin_handle ch, const char* url,
         case GFAL_PLUGIN_RENAME:
         case GFAL_PLUGIN_OPENDIR:
         case GFAL_PLUGIN_CHECKSUM:
+        case GFAL_PLUGIN_GETXATTR:
+        case GFAL_PLUGIN_SETXATTR:
+        case GFAL_PLUGIN_LISTXATTR:
             ret = TRUE;
             break;
         default:

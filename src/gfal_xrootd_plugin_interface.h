@@ -70,6 +70,16 @@ int gfal_xrootd_checksumG(plugin_handle data, const char* url, const char* check
                           char * checksum_buffer, size_t buffer_length,
                           off_t start_offset, size_t data_length,
                           GError ** err);
+
+ssize_t gfal_xrootd_getxattrG(plugin_handle plugin_data, const char* url, const char* key,
+                            void* buff, size_t s_buff, GError** err);
+
+ssize_t gfal_xrootd_listxattrG(plugin_handle plugin_data, const char* url,
+        char* list, size_t s_list, GError** err);
+
+int gfal_xrootd_setxattrG(plugin_handle plugin_data, const char* url, const char* key,
+                    const void* buff , size_t s_buff, int flags, GError** err);
+
 #if GFAL2_VERSION_MAJOR >=2 && GFAL2_VERSION_MINOR >= 6
 int gfal_xrootd_3rdcopy_check(plugin_handle plugin_data,
         gfal2_context_t context, const char* src, const char* dst,
