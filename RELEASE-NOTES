@@ -1,18 +1,41 @@
-* Mon Apr 29 2013 Adrien Devresse <adevress at cern.ch> - 0.2.2-1
+# Mon Jan 19 2014 Alejandro Álvarez <aalvarez@cern.ch> - 0.3.4
+ - [DMC-270] Checksum comparison done even when it has been specified not to
+ - [DMC-293] gfal2_cancel is not canceling xroot transfers, must be impl in the plug-in
+ - [DMC-294] gfal2_cancel does nothing for xrootd
+ - [DMC-378] xrootd: listing directories with full stats is not working
+ - [DMC-557] XRootd Plugin: No TRANSFER:EXIT event for xrootd transfer
+ - [DMC-612] Xrootd gives (sometimes?) EACCES instead of EEXIST when trying to create a dir that exists
+ - [DMC-525] Some errno changed in xrootd for rmdir
+ - [DMC-591] Xrootd Plugin: On copy code, map xrootd errors to errno
+ - [DMC-608] Add support for extended attributes
+ - [DMC-55]  Set a clean API to set/get at runtime the different possible credential
+ - [DMC-291] xroot ODsvcClass/OSsvcClass as a parameter
+ - [DMC-526] Allow to configure the value of checkSumMode
+ - [DMC-590] xroot gfal2 3rd party copy bulk
+ - [DMC-273] gfal xrootd plugin : move the source tree from github personnal to it-sdc-id github
+ - [DMC-350] gfal2-xrootd-plugin : xrootd plugin is unable to use readdirpp logic
+
+
+# Mon Apr 29 2013 Adrien Devresse <adevress at cern.ch> - 0.2.2-1
  - support for 3rd party copy with xrootd
  - correct compilation problem with 32 bits
  - correct EL5 compilation problem
  - Normalize spec file for EPEL
  - switch the copyright ownership to EMI
 
-* Thu Mar 21 2013 Alejandro Alvarez <aalvarez@cern.ch> - 0.1.1-2
+
+# Thu Mar 21 2013 Alejandro Alvarez <aalvarez@cern.ch> - 0.1.1-2
 - Update to compile with xrootd 3.3.1
 
-* Tue Jan 29 2013 Alejandro Alvarez <aalvarez@cern.ch> - 0.1.1-1
+
+# Tue Jan 29 2013 Alejandro Alvarez <aalvarez@cern.ch> - 0.1.1-1
 - All URL's are treated as full path
 
-* Fri Jan 18 2013 Alejandro Alvarez <aalvarez@cern.ch> - 0.1.0-2
+
+# Fri Jan 18 2013 Alejandro Alvarez <aalvarez@cern.ch> - 0.1.0-2
 - Using CMake
 
-* Tue May 22 2012 David Cameron <d.g.cameron@fys.uio.no> - 0.1.0-1
+
+# Tue May 22 2012 David Cameron <d.g.cameron@fys.uio.no> - 0.1.0-1
 - Initial version
+
