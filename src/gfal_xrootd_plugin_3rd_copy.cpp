@@ -40,7 +40,6 @@ public:
     CopyFeedback(gfal2_context_t context, gfalt_params_t p) :
             context(context), params(p), startTime(0)
     {
-        this->monitorCallback = gfalt_get_monitor_callback(this->params, NULL);
         monitorCallbackData = gfalt_transfer_status_create(&this->status);
     }
 
@@ -97,21 +96,18 @@ public:
     void JobProgress(uint64_t bytesProcessed, uint64_t bytesTotal)
 #endif
     {
-        if (this->monitorCallback) {
-            time_t now = time(NULL);
-            time_t elapsed = now - this->startTime;
+        time_t now = time(NULL);
+        time_t elapsed = now - this->startTime;
 
-            this->status.status = 0;
-            this->status.bytes_transfered = bytesProcessed;
-            this->status.transfer_time = elapsed;
-            if (elapsed > 0)
-                this->status.average_baudrate = bytesProcessed / elapsed;
-            this->status.instant_baudrate = this->status.average_baudrate;
+        this->status.status = 0;
+        this->status.bytes_transfered = bytesProcessed;
+        this->status.transfer_time = elapsed;
+        if (elapsed > 0)
+            this->status.average_baudrate = bytesProcessed / elapsed;
+        this->status.instant_baudrate = this->status.average_baudrate;
 
-            this->monitorCallback(this->monitorCallbackData,
-                    this->source.c_str(), this->destination.c_str(),
-                    NULL);
-        }
+        plugin_trigger_monitor(this->params, this->monitorCallbackData,
+                this->source.c_str(), this->destination.c_str());
     }
 
     bool ShouldCancel()
@@ -122,7 +118,6 @@ public:
 private:
     gfal2_context_t context;
     gfalt_params_t params;
-    gfalt_monitor_func monitorCallback;
 
     gfalt_transfer_status_t monitorCallbackData;
     gfalt_hook_transfer_plugin_t status;

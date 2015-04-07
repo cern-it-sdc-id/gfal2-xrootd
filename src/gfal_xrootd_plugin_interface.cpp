@@ -52,13 +52,13 @@ GQuark xrootd_domain = g_quark_from_static_string("xroot");
 void set_xrootd_log_level()
 {
     // Note: xrootd lib logs to stderr
-    if (gfal_get_verbose() & GFAL_VERBOSE_TRACE_PLUGIN)
+    if (gfal2_log_get_level() >= G_LOG_LEVEL_DEBUG)
         XrdPosixXrootd::setDebug(4);
-    else if (gfal_get_verbose() & GFAL_VERBOSE_TRACE)
+    else if (gfal2_log_get_level() >= G_LOG_LEVEL_INFO)
         XrdPosixXrootd::setDebug(3);
-    else if (gfal_get_verbose() & GFAL_VERBOSE_DEBUG)
+    else if (gfal2_log_get_level() >= G_LOG_LEVEL_MESSAGE)
         XrdPosixXrootd::setDebug(2);
-    else if (gfal_get_verbose() & GFAL_VERBOSE_VERBOSE)
+    else if (gfal2_log_get_level() >= G_LOG_LEVEL_WARNING)
         XrdPosixXrootd::setDebug(1);
     else
         XrdPosixXrootd::setDebug(0);
