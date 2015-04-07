@@ -175,7 +175,7 @@ int gfal_xrootd_3rd_copy_bulk(plugin_handle plugin_data,
     const char* src_spacetoken =  gfalt_get_src_spacetoken(params, NULL);
     const char* dst_spacetoken =  gfalt_get_dst_spacetoken(params, NULL);
 
-    for (int i = 0; i < nbfiles; ++i) {
+    for (size_t i = 0; i < nbfiles; ++i) {
         XrdCl::URL source_url, dest_url;
         gfal_xrootd_3rd_init_url(context, source_url, srcs[i], src_spacetoken);
         gfal_xrootd_3rd_init_url(context, dest_url, dsts[i], dst_spacetoken);
@@ -274,7 +274,7 @@ int gfal_xrootd_3rd_copy_bulk(plugin_handle plugin_data,
     int n_failed = 0;
 #if XrdMajorVNUM(XrdVNUMBER) == 4
     *file_errors = g_new0(GError*, nbfiles);
-    for (int i = 0; i < nbfiles; ++i) {
+    for (size_t i = 0; i < nbfiles; ++i) {
         status = results[i].Get<XrdCl::XRootDStatus>("status");
         if (!status.IsOK()) {
             gfal2_set_error(&((*file_errors)[i]), xrootd_domain,
