@@ -18,10 +18,10 @@ BuildRequires:  boost-devel >= 1.41.0
 BuildRequires:  boost141-devel
 %endif
 BuildRequires:  cmake
-BuildRequires:  gfal2-devel >= 2.9.0
+BuildRequires:  gfal2-devel >= 2.9.1
 BuildRequires:  xrootd-client-devel
 
-Requires:		gfal2 >= 2.9.0
+Requires:		gfal2 >= 2.9.1
 
 %description
 The Grid File Access Library, GFAL2, provides a simple POSIX-like API for file

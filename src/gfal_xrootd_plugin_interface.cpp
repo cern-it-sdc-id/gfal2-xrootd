@@ -546,5 +546,5 @@ int gfal_xrootd_setxattrG(plugin_handle plugin_data, const char* url, const char
 
 const char* gfal_xrootd_getName()
 {
-    return "xrootd";
+    return GFAL2_PLUGIN_VERSIONED("xrootd", VERSION);
 }

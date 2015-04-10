@@ -3,9 +3,11 @@ cmake_minimum_required (VERSION 2.6)
 project (gfal2-plugin-xrootd)
 
 set(VERSION_MAJOR 0)
-set(VERSION_MINOR 3)
-set(VERSION_PATCH 4)
+set(VERSION_MINOR 4)
+set(VERSION_PATCH 0)
 set(VERSION_STRING ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
+
+add_definitions(-DVERSION="${VERSION_STRING}")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules/")
 
