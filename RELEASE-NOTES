@@ -6,7 +6,7 @@
 ** New Feature
   - [DMC-663] - Add functionality to allow querying the versions of the plugins loaded
 
-# Mon Jan 19 2014 Alejandro Álvarez <aalvarez@cern.ch> - 0.3.4
+# Mon Jan 19 2015 Alejandro Álvarez <aalvarez@cern.ch> - 0.3.4
  - [DMC-270] Checksum comparison done even when it has been specified not to
  - [DMC-293] gfal2_cancel is not canceling xroot transfers, must be impl in the plug-in
  - [DMC-294] gfal2_cancel does nothing for xrootd
