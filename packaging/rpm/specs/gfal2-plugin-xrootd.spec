@@ -41,6 +41,16 @@ xrootd protocol (root://).
 %setup -q
 
 %build
+# Make sure the version in the spec file and the version used
+# for building matches
+gfal2_xrootd_cmake_ver=`sed -n 's/^set(VERSION_\(MAJOR\|MINOR\|PATCH\) \([0-9]\+\).*/\2/p' CMakeLists.txt | paste -sd '.'`
+gfal2_xrootd_spec_ver=`expr "%{version}" : '\([0-9]*\\.[0-9]*\\.[0-9]*\)'`
+if [ "$gfal2_xrootd_cmake_ver" != "$gfal2_xrootd_spec_ver" ]; then
+    echo "The version in the spec file does not match the CMakeLists.txt version!"
+    echo "%{version} != $gfal2_xrootd_cmake_ver"
+    exit 1
+fi
+
 %cmake \
 -DCMAKE_INSTALL_PREFIX=/ \
 -DDOC_INSTALL_DIR=%{_pkgdocdir} \
